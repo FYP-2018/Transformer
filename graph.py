@@ -1,6 +1,9 @@
 from collections import namedtuple
 import tensorflow as tf
 
+import memory_saving_gradients
+tf.__dict__["gradients"] = memory_saving_gradients.gradients_memory
+
 from hyperparams import Hyperparams as hp
 from data_load import get_batch_data, load_doc_vocab, load_sum_vocab
 from rouge_tensor import rouge_l_fscore

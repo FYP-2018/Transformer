@@ -16,6 +16,15 @@ from hyperparams import Hyperparams as hp
 from data_load import load_doc_vocab, load_sum_vocab, load_data
 from rouge_tensor import rouge_l_sentence_level
 
+def calculate_model_size():
+    var_sizes = [np.product(list(map(int, v.shape))) * v.dtype.size  for v in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)]
+    print("====================== BASIC TRANSFORMER ======================")
+    print("|| Para number: ", len(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)), "||")
+    print("|| Model size: ", sum(var_sizes) / (1024 ** 2), 'MB', "||")
+    print("========================================================")
+
+
+    
 def train():
     try:
         if not os.path.exists(hp.logdir):
@@ -47,11 +56,17 @@ def train():
             for epoch in range(1, hp.num_epochs+1):
                 print("Starting {}-th epoch".format(epoch))
 
+                # calculate_model_size()
+                # break
+                
                 if sv.should_stop():
                     break
 
                 for step in range(train_g.num_batch):
                     true_step = step + (epoch - 1) * train_g.num_batch
+                    
+                    if step % 30 == 0: 
+                        print("the {} / {} batch".format(step, train_g.num_batch))
 
                     if true_step % hp.train_record_steps == 0:
                         summary, _ = sess.run([train_g.merged, train_g.train_op_ml])
@@ -63,8 +78,8 @@ def train():
                         # sv.saver.save(sess, hp.logdir + '/model_epoch_%02d_step_%d' % (epoch, true_step))
                         saver.save(sess, hp.logdir + '/model_epoch_%02d_step_%d' % (epoch, true_step))
 
-                    if true_step > 0 and true_step % hp.eval_record_steps == 0:
-                        eval(cur_step=true_step, write_file=False)
+                    # if true_step > 0 and true_step % hp.eval_record_steps == 0:
+                        # eval(cur_step=true_step, write_file=False)
 
                     # iteration indent
                 # epoch indent
