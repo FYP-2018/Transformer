@@ -73,7 +73,11 @@ class Graph():
                                  scale=True,
                                  scope="encoder_embed")
 
+                                 
             self.batch_inp_emb = self.enc
+
+            key_masks = tf.expand_dims(tf.sign(tf.reduce_sum(tf.abs(self.enc), axis=-1)), -1)
+
             with tf.variable_scope("encoder"):
                 if hp.sinusoid:
                     self.enc += positional_encoding(self.x,
@@ -89,6 +93,8 @@ class Graph():
                         zero_pad=False,
                         scale=False,
                         scope="enc_pe")
+
+                self.enc *= key_masks
 
                 ## Dropout ***
                 self.enc = tf.layers.dropout(self.enc,
@@ -124,6 +130,8 @@ class Graph():
 
             self.batch_outp_emb = self.dec
 
+            key_masks = tf.expand_dims(tf.sign(tf.reduce_sum(tf.abs(self.dec), axis=-1)), -1)
+
             with tf.variable_scope("decoder"):
                 ## Positional Encoding
                 if hp.sinusoid:
@@ -144,6 +152,8 @@ class Graph():
                                           scope="dec_pe",
                                           reuse=reuse)
 
+                self.dec *= key_masks
+                
                 ## Dropout
                 self.dec = tf.layers.dropout(self.dec,
                                              rate=hp.dropout_rate,
